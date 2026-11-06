@@ -138,7 +138,7 @@ class SpriteRenderer {
   }
 
   // 외계인 적 유닛 렌더링 (type: 'zako' | 'goei' | 'boss')
-  drawEnemy(ctx, x, y, width, height, type = 'zako', letter = '', isTargetLetter = false, rotation = 0, difficulty = 'easy', hasCapturedFighter = false) {
+  drawEnemy(ctx, x, y, width, height, type = 'zako', letter = '', rotation = 0, hasCapturedFighter = false) {
     ctx.save();
     ctx.translate(x, y);
     if (rotation !== 0) {
@@ -166,7 +166,7 @@ class SpriteRenderer {
     }
 
     if (letter) {
-      this._drawLetterBadge(ctx, 0, 0, width, letter, isTargetLetter, difficulty);
+      this._drawLetterBadge(ctx, 0, 0, width, letter);
     }
 
     ctx.restore();
@@ -300,39 +300,21 @@ class SpriteRenderer {
     ctx.restore();
   }
 
-  // 알파벳 스펠링 뱃지 & 타깃 조준 인디케이터
-  _drawLetterBadge(ctx, ox, oy, enemyWidth, letter, isTargetLetter, difficulty = 'easy') {
+  // 알파벳 스펠링 뱃지 (하이라이트 완전 제거, 학생이 철자를 직접 찾도록 균일 렌더링)
+  _drawLetterBadge(ctx, ox, oy, enemyWidth, letter) {
     const badgeR = enemyWidth * 0.48;
-    const showHighlight = isTargetLetter && (difficulty !== 'hard');
-
-    if (showHighlight) {
-      const pulseMag = (difficulty === 'easy') ? 6 : 3;
-      const pulse = Math.sin(this.animTick * 0.2) * pulseMag + pulseMag;
-      ctx.save();
-      ctx.beginPath();
-      ctx.arc(ox, oy, badgeR + pulse, 0, Math.PI * 2);
-      ctx.fillStyle = (difficulty === 'easy') ? 'rgba(255, 215, 0, 0.45)' : 'rgba(56, 189, 248, 0.25)';
-      ctx.shadowColor = (difficulty === 'easy') ? '#ffd700' : '#38bdf8';
-      ctx.shadowBlur = (difficulty === 'easy') ? 18 : 8;
-      ctx.fill();
-      ctx.restore();
-    }
 
     ctx.save();
     ctx.beginPath();
     ctx.arc(ox, oy, badgeR, 0, Math.PI * 2);
-    ctx.fillStyle = showHighlight ? '#111827' : '#0f172a';
+    ctx.fillStyle = '#0f172a';
     ctx.fill();
 
-    ctx.lineWidth = showHighlight ? 3.5 : 2;
-    ctx.strokeStyle = showHighlight
-      ? ((difficulty === 'easy') ? '#ffd700' : '#38bdf8')
-      : '#334155';
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = '#38bdf8';
     ctx.stroke();
 
-    ctx.fillStyle = showHighlight
-      ? ((difficulty === 'easy') ? '#ffeb3b' : '#38bdf8')
-      : '#ffffff';
+    ctx.fillStyle = '#ffffff';
     ctx.font = `bold ${Math.round(badgeR * 1.35)}px 'Press Start 2P', monospace, sans-serif`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
