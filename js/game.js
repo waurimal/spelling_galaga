@@ -21,9 +21,9 @@ class SpellingGalagaGame {
     // 게임 상태: 'TITLE' | 'PLAYING' | 'WORD_CLEAR' | 'GAME_OVER' | 'VICTORY'
     this.state = 'TITLE';
 
-    // 기본 난이도 모드: 'easy' (초등 배려: 오답 시 목숨 보호 & 조준 가이드) | 'normal' | 'hard'
+    // 기본 난이도 모드: 'easy' (초급: 3회 오답 기회) | 'normal' (중급: 2회 오답 기회) | 'hard' (고급: 1회 즉시 차감)
     this.difficulty = 'easy';
-    this.wrongShotCount = 0; // 중급 모드용 연속 오답 카운터
+    this.wrongShotCount = 0; // 누적 오답 카운터 (초급 3회, 중급 2회 시 목숨 차감)
 
     // 기본 게임 규칙 & 상태 변수
     this.maxLives = 5;
@@ -341,9 +341,9 @@ class SpellingGalagaGame {
         const entrySide = (c % 2 === 0) ? -1 : 1;
         const startXPos = entrySide === -1 ? -40 - c * 20 : this.virtualWidth + 40 + c * 20;
 
-        // 난이도별 다이빙 속도 및 총알 쿨다운 차등화
-        let baseDiveSpeed = (this.difficulty === 'easy') ? 1.5 : (this.difficulty === 'normal' ? 2.2 : 2.9);
-        let baseShootCooldown = (this.difficulty === 'easy') ? 600 : (this.difficulty === 'normal' ? 300 : 150);
+        // 난이도별 다이빙 속도 및 총알 쿨다운 차등화 (초급 긴장감과 아케이드 재미 복원)
+        let baseDiveSpeed = (this.difficulty === 'easy') ? 2.0 : (this.difficulty === 'normal' ? 2.6 : 3.2);
+        let baseShootCooldown = (this.difficulty === 'easy') ? 400 : (this.difficulty === 'normal' ? 250 : 140);
 
         this.enemies.push({
           type,
@@ -632,25 +632,33 @@ class SpellingGalagaGame {
         this.ensureTargetLetterAvailable();
       }
     } else {
-      // ❌ 오답 글자 맞힘 (난이도별 친화적 규칙 적용)
+      // ❌ 오답 글자 맞힘 (난이도별 공정한 기회 시스템)
       this.sounds.playWrong();
       this.combo = 0;
 
       if (this.difficulty === 'easy') {
-        // 🟢 초급 모드: 목숨 절대 안 깎임! (학생들의 좌절 방지)
-        this.shakeTimer = 6;
-        this.addFloatingText(`MISS! '${enemy.letter}' (초급: 목숨 보호)`, enemy.x, enemy.y - 15, '#fbbf24', 16);
-      } else if (this.difficulty === 'normal') {
-        // 🟡 중급 모드: 3번 누적 실수할 때만 목숨 1개 차감
+        // 🟢 초급 모드: 3회 누적 오답 시 목숨 1개 차감 (2회까지는 친절한 경고 기회)
         this.wrongShotCount++;
         if (this.wrongShotCount >= 3) {
           this.wrongShotCount = 0;
           this.lives--;
           this.shakeTimer = 14;
-          this.addFloatingText(`3연속 오답! -1 LIFE`, this.virtualWidth / 2, this.virtualHeight / 2, '#f87171', 20);
+          this.addFloatingText(`3회 오답 누적! -1 LIFE`, this.virtualWidth / 2, this.virtualHeight / 2, '#f87171', 20);
         } else {
-          this.shakeTimer = 6;
-          this.addFloatingText(`주의! (${this.wrongShotCount}/3 경고)`, enemy.x, enemy.y - 15, '#fbbf24', 16);
+          this.shakeTimer = 8;
+          this.addFloatingText(`오답 주의! (${this.wrongShotCount}/3 기회)`, enemy.x, enemy.y - 15, '#fbbf24', 16);
+        }
+      } else if (this.difficulty === 'normal') {
+        // 🟡 중급 모드: 2회 누적 오답 시 목숨 1개 차감
+        this.wrongShotCount++;
+        if (this.wrongShotCount >= 2) {
+          this.wrongShotCount = 0;
+          this.lives--;
+          this.shakeTimer = 14;
+          this.addFloatingText(`2회 오답 누적! -1 LIFE`, this.virtualWidth / 2, this.virtualHeight / 2, '#f87171', 20);
+        } else {
+          this.shakeTimer = 10;
+          this.addFloatingText(`오답 경고! (1/2 기회)`, enemy.x, enemy.y - 15, '#fbbf24', 16);
         }
       } else {
         // 🔴 고급 모드: 즉시 목숨 1개 차감
@@ -849,8 +857,8 @@ class SpellingGalagaGame {
       this.formationDirection *= -1;
     }
 
-    // 급강하 쿨다운 (초급은 5.2초로 매우 넉넉함)
-    const diveInterval = (this.difficulty === 'easy') ? 5.2 : (this.difficulty === 'normal' ? 3.5 : 2.0);
+    // 급강하 쿨다운 (초급 3.4초, 중급 2.4초, 고급 1.6초)
+    const diveInterval = (this.difficulty === 'easy') ? 3.4 : (this.difficulty === 'normal' ? 2.4 : 1.6);
 
     this.diveTimer += dt;
     if (this.diveTimer > diveInterval && this.enemies.length > 0) {
@@ -861,8 +869,9 @@ class SpellingGalagaGame {
         diver.state = 'DIVING';
         diver.diveTargetX = this.player.x;
 
-        // 초급에서는 트랙터 빔 비활성화, 중/고급에서만 발동
-        if (this.difficulty !== 'easy' && diver.type === 'boss' && !this.player.isDual && !this.capturedFighterBoss && Math.random() < 0.3) {
+        // 보스 트랙터 빔 (초급도 20% 확률로 발동되어 듀얼 파이터 구출 재미 제공)
+        const tractorChance = (this.difficulty === 'easy') ? 0.2 : (this.difficulty === 'normal' ? 0.3 : 0.4);
+        if (diver.type === 'boss' && !this.player.isDual && !this.capturedFighterBoss && Math.random() < tractorChance) {
           diver.isTractorBoss = true;
         }
       }
@@ -887,8 +896,8 @@ class SpellingGalagaGame {
 
         e.shootCooldown--;
         if (e.shootCooldown <= 0) {
-          const cooldownBase = (this.difficulty === 'easy') ? 700 : (this.difficulty === 'normal' ? 350 : 200);
-          e.shootCooldown = cooldownBase + Math.random() * 300;
+          const cooldownBase = (this.difficulty === 'easy') ? 450 : (this.difficulty === 'normal' ? 280 : 160);
+          e.shootCooldown = cooldownBase + Math.random() * 250;
           this.shootEnemyBullet(e.x, e.y);
         }
       } else if (e.state === 'DIVING') {
@@ -924,7 +933,7 @@ class SpellingGalagaGame {
           this.activeTractorBeam = null;
         }
 
-        if (Math.abs(e.y - (this.virtualHeight * 0.5)) < 4 && this.difficulty !== 'easy') {
+        if (Math.abs(e.y - (this.virtualHeight * 0.5)) < 4 && (this.difficulty !== 'easy' || Math.random() < 0.4)) {
           this.shootEnemyBullet(e.x, e.y);
         }
 
@@ -968,12 +977,12 @@ class SpellingGalagaGame {
     }, 1200);
   }
 
-  // 적 탄환 발사 (초급은 최대 2발로 아주 안전)
+  // 적 탄환 발사 (난이도별 탄환 수 및 속도)
   shootEnemyBullet(x, y) {
-    const maxBullets = (this.difficulty === 'easy') ? 2 : (this.difficulty === 'normal' ? 4 : 7);
+    const maxBullets = (this.difficulty === 'easy') ? 3 : (this.difficulty === 'normal' ? 5 : 7);
     if (this.enemyBullets.length >= maxBullets) return;
 
-    const bulletSpeed = (this.difficulty === 'easy') ? 1.8 : (this.difficulty === 'normal' ? 2.5 : 3.2);
+    const bulletSpeed = (this.difficulty === 'easy') ? 2.2 : (this.difficulty === 'normal' ? 2.7 : 3.3);
 
     this.enemyBullets.push({
       x,

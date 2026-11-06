@@ -338,28 +338,6 @@ class SpriteRenderer {
     ctx.textBaseline = 'middle';
     ctx.fillText(letter, ox, oy + 2);
 
-    // 🎯 초급/중급 모드: 타깃 외계인 상단에 큼직한 조준 화살표(▼) 표시
-    if (showHighlight) {
-      const arrowBounce = Math.sin(this.animTick * 0.25) * 5;
-      ctx.fillStyle = '#ffd700';
-      ctx.shadowColor = '#ffd700';
-      ctx.shadowBlur = 12;
-      ctx.beginPath();
-      ctx.moveTo(ox, oy - badgeR - 10 + arrowBounce);
-      ctx.lineTo(ox - 7, oy - badgeR - 20 + arrowBounce);
-      ctx.lineTo(ox + 7, oy - badgeR - 20 + arrowBounce);
-      ctx.closePath();
-      ctx.fill();
-
-      if (difficulty === 'easy') {
-        ctx.font = "bold 11px 'DungGeunMo', 'Pretendard', sans-serif";
-        ctx.fillStyle = '#fef08a';
-        ctx.shadowBlur = 8;
-        ctx.textAlign = 'center';
-        ctx.fillText('🎯조준!', ox, oy - badgeR - 24 + arrowBounce);
-      }
-    }
-
     ctx.restore();
   }
 

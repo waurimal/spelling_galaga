@@ -81,11 +81,11 @@
 
       <!-- 제어 버튼들 -->
       <div class="control-buttons">
-        <!-- 난이도 선택: 기본값 초급(오답 안심) -->
+        <!-- 난이도 선택: 기본값 초급(3회 오답 기회) -->
         <select id="selectDifficulty" class="hud-select" title="학습 난이도 선택">
-          <option value="easy" selected>🟢 초급 (초등 추천 / 오답 안심)</option>
-          <option value="normal">🟡 중급 (3회 누적 경고)</option>
-          <option value="hard">🔴 고급 (1회 즉시 차감)</option>
+          <option value="easy" selected>🟢 초급 (3회 오답 기회 / 철자 강조)</option>
+          <option value="normal">🟡 중급 (2회 오답 기회 / 표준)</option>
+          <option value="hard">🔴 고급 (1회 즉시 차감 / 암기)</option>
         </select>
 
         <button type="button" id="btnHof" class="hud-btn" title="명예의 전당 랭킹"><i class="fas fa-trophy" style="color:#ffd700;"></i> 랭킹</button>
@@ -243,8 +243,8 @@
 
       <div class="guide-content">
         <div class="guide-item" style="border-left-color: #4ade80;">
-          <strong style="color: #4ade80;">🟢 초급 모드 (기본 추천 / 오답 안심)</strong><br>
-          엉뚱한 외계인을 쏴도 <strong>목숨이 절대 깎이지 않습니다!</strong> 외계인 머리 위에 떠 있는 <strong>🎯조준 화살표</strong>를 보며 편안하고 신나게 단어를 완성해 보세요.
+          <strong style="color: #4ade80;">🟢 초급 모드 (기본 추천 / 3회 오답 기회)</strong><br>
+          엉뚱한 외계인을 격추해도 <strong>2번까지는 경고 기회</strong>가 주어지며 <strong>3회 누적 오답 시 목숨 1개가 차감</strong>됩니다. 황금빛으로 반짝이는 타깃 알파벳을 조준하여 단어를 완성해 보세요!
         </div>
         <div class="guide-item">
           <strong>🎯 기본 게임 룰</strong><br>
