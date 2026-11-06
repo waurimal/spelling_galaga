@@ -626,9 +626,14 @@ class SpellingGalagaGame {
         this.ensureTargetLetterAvailable();
       }
     } else {
-      // ❌ 오답 글자 맞힘 (난이도별 공정한 기회 시스템)
+      // ❌ 오답 글자 맞힘 (엉뚱한 알파벳 피격 시 즉시 감점 처리)
       this.sounds.playWrong();
       this.combo = 0;
+
+      // 난이도별 감점 처리 (0점 미만으로는 내려가지 않음)
+      const penaltyScore = (this.difficulty === 'easy') ? 50 : (this.difficulty === 'normal' ? 80 : 100);
+      this.score = Math.max(0, this.score - penaltyScore);
+      this.addFloatingText(`-${penaltyScore}`, enemy.x, enemy.y - 15, '#ef4444', 18);
 
       if (this.difficulty === 'easy') {
         // 🟢 초급 모드: 3회 누적 오답 시 목숨 1개 차감 (2회까지는 친절한 경고 기회)
@@ -640,7 +645,7 @@ class SpellingGalagaGame {
           this.addFloatingText(`3회 오답 누적! -1 LIFE`, this.virtualWidth / 2, this.virtualHeight / 2, '#f87171', 20);
         } else {
           this.shakeTimer = 8;
-          this.addFloatingText(`오답 주의! (${this.wrongShotCount}/3 기회)`, enemy.x, enemy.y - 15, '#fbbf24', 16);
+          this.addFloatingText(`오답 주의! (${this.wrongShotCount}/3 기회)`, enemy.x, enemy.y - 35, '#fbbf24', 16);
         }
       } else if (this.difficulty === 'normal') {
         // 🟡 중급 모드: 2회 누적 오답 시 목숨 1개 차감
@@ -652,13 +657,13 @@ class SpellingGalagaGame {
           this.addFloatingText(`2회 오답 누적! -1 LIFE`, this.virtualWidth / 2, this.virtualHeight / 2, '#f87171', 20);
         } else {
           this.shakeTimer = 10;
-          this.addFloatingText(`오답 경고! (1/2 기회)`, enemy.x, enemy.y - 15, '#fbbf24', 16);
+          this.addFloatingText(`오답 경고! (1/2 기회)`, enemy.x, enemy.y - 35, '#fbbf24', 16);
         }
       } else {
         // 🔴 고급 모드: 즉시 목숨 1개 차감
         this.lives--;
         this.shakeTimer = 16;
-        this.addFloatingText(`MISS! -1 LIFE`, enemy.x, enemy.y - 15, '#ef4444', 18);
+        this.addFloatingText(`MISS! -1 LIFE`, enemy.x, enemy.y - 35, '#ef4444', 18);
       }
 
       this.updateHUD();
@@ -1272,7 +1277,7 @@ class SpellingGalagaGame {
     this.ctx.font = "14px 'DungGeunMo', sans-serif";
     this.ctx.fillText("1. 상단 전광판의 [단어 뜻]과 [지금 쏠 글자]를 확인하세요.", this.virtualWidth / 2, 270);
     this.ctx.fillText("2. 한 줄로 늘어선 외계인 편대에서 철자에 맞는 알파벳을 찾아 조준 사격하세요!", this.virtualWidth / 2, 300);
-    this.ctx.fillText("3. 3회 연속 오답 시 목숨 1개 차감! 침착하게 알파벳을 조준하세요.", this.virtualWidth / 2, 330);
+    this.ctx.fillText("3. 정답 철자 격추 시 점수 UP! 엉뚱한 오답 격추 시 감점(-50점) & 기회 차감!", this.virtualWidth / 2, 330);
     this.ctx.fillText("4. ⚡ 듀얼 파이터, 🛡️ 쉴드, 💣 폭탄, ❤️ 하트 아이템을 획득하세요!", this.virtualWidth / 2, 360);
     this.ctx.fillText("5. 🏆 상단 [명예의 전당]에서 은하계 랭킹 TOP 30을 확인하세요!", this.virtualWidth / 2, 390);
 
