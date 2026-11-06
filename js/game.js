@@ -117,11 +117,15 @@ class SpellingGalagaGame {
     }
   }
 
-  // 캔버스 반응형 리사이징
+  // 캔버스 반응형 리사이징 (상단과 하단을 안전하게 유지하고 가운데 영역에 완벽 피팅)
   resizeCanvas() {
-    const container = this.canvas.parentElement;
-    const cw = container.clientWidth;
-    const ch = container.clientHeight;
+    const viewport = document.getElementById('gameCenterViewport') || this.canvas.parentElement;
+    if (!viewport) return;
+
+    const paddingX = 20;
+    const paddingY = 16;
+    const cw = Math.max(100, viewport.clientWidth - paddingX);
+    const ch = Math.max(100, viewport.clientHeight - paddingY);
 
     const aspect = this.virtualWidth / this.virtualHeight;
     let w = cw;
@@ -196,6 +200,31 @@ class SpellingGalagaGame {
       handlePointerMove(e);
       e.preventDefault();
     }, { passive: false });
+
+    // 가운데 뷰포트 영역 터치/마우스 유연 지원
+    setTimeout(() => {
+      const viewport = document.getElementById('gameCenterViewport');
+      if (viewport) {
+        viewport.addEventListener('mousedown', (e) => {
+          if (e.target === viewport) handlePointerDown(e);
+        });
+        viewport.addEventListener('mousemove', (e) => {
+          if (e.buttons > 0 && e.target === viewport) handlePointerMove(e);
+        });
+        viewport.addEventListener('touchstart', (e) => {
+          if (e.target === viewport) {
+            handlePointerDown(e);
+            e.preventDefault();
+          }
+        }, { passive: false });
+        viewport.addEventListener('touchmove', (e) => {
+          if (e.target === viewport) {
+            handlePointerMove(e);
+            e.preventDefault();
+          }
+        }, { passive: false });
+      }
+    }, 100);
   }
 
   // 난이도 설정 변경

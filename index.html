@@ -13,6 +13,7 @@
   <link rel="stylesheet" href="../common/waurimal-theme.css">
   <script src="../common/firebase-config.js"></script>
   <script src="../common/curriculum.js"></script>
+  <script src="../common/waurimal-nav.js"></script>
 
   <!-- Firebase SDK (v10 compat) -->
   <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
@@ -97,16 +98,37 @@
     </div>
   </header>
 
-  <!-- 메인 게임 뷰포트 -->
-  <main class="game-viewport">
-    <canvas id="gameCanvas" width="800" height="600"></canvas>
-
-    <!-- 크롬북 터치스크린 및 모바일용 터치 오버레이 -->
-    <div class="touch-controls">
-      <div class="touch-hint">크롬북: 방향키 이동 & 스페이스바 발사 (또는 화면 드래그)</div>
-      <button type="button" id="touchFireBtn" class="touch-fire-btn" aria-label="미사일 발사">FIRE</button>
+  <!-- 2. 가운데 게임 플레이 영역 (Playfield: 상단과 하단 사이 가운데에서만 게임 진행) -->
+  <main id="gameCenterViewport" class="game-center-viewport">
+    <div id="gameCanvasWrapper" class="game-canvas-wrapper">
+      <canvas id="gameCanvas" width="800" height="600"></canvas>
     </div>
   </main>
+
+  <!-- 3. 하단 컨트롤 & 조작 안내 바 (Fixed Bottom Bar) -->
+  <footer class="game-footer">
+    <div class="footer-left">
+      <button type="button" id="btnTouchLeft" class="bottom-ctrl-btn move-btn" aria-label="왼쪽 이동">
+        <i class="fas fa-chevron-left"></i> ◀ 좌로
+      </button>
+      <button type="button" id="btnTouchRight" class="bottom-ctrl-btn move-btn" aria-label="오른쪽 이동">
+        우로 ▶ <i class="fas fa-chevron-right"></i>
+      </button>
+    </div>
+
+    <div class="footer-center">
+      <div class="footer-hint-row">
+        <span class="ctrl-hint-badge"><i class="fas fa-keyboard"></i> 키보드: [←] [→] 이동 &amp; [스페이스바] 발사</span>
+        <span class="ctrl-touch-badge"><i class="fas fa-hand-pointer"></i> 가운데 화면 직접 드래그로도 조작 가능</span>
+      </div>
+    </div>
+
+    <div class="footer-right">
+      <button type="button" id="touchFireBtn" class="bottom-ctrl-btn fire-btn" aria-label="미사일 발사">
+        <i class="fas fa-crosshairs"></i> FIRE (발사)
+      </button>
+    </div>
+  </footer>
 
   <!-- 1. 게임 결과 및 학습 리포트 모달 (Native Dialog) -->
   <dialog id="resultModal">
@@ -296,19 +318,108 @@
         window.gameInstance.setDifficulty(e.target.value);
       });
 
-      // 5. 터치 발사 버튼
+      // 5-1. 하단 터치 발사 버튼 (탭 및 길게 누르기 연사 지원)
       const touchFireBtn = document.getElementById('touchFireBtn');
-      const handleFire = (e) => {
-        e.preventDefault();
-        window.gameInstance.sounds.init();
-        if (window.gameInstance.state === 'TITLE' || window.gameInstance.state === 'GAME_OVER' || window.gameInstance.state === 'VICTORY') {
-          window.gameInstance.startGame();
-        } else {
-          window.gameInstance.shootMissile();
+      if (touchFireBtn) {
+        const handleFireDown = (e) => {
+          e.preventDefault();
+          window.gameInstance.sounds.init();
+          if (window.gameInstance.state === 'TITLE' || window.gameInstance.state === 'GAME_OVER' || window.gameInstance.state === 'VICTORY') {
+            window.gameInstance.startGame();
+          } else {
+            window.gameInstance.shootMissile();
+            window.gameInstance.keys['Space'] = true;
+          }
+          touchFireBtn.classList.add('active');
+        };
+        const handleFireUp = (e) => {
+          e.preventDefault();
+          window.gameInstance.keys['Space'] = false;
+          touchFireBtn.classList.remove('active');
+        };
+        touchFireBtn.addEventListener('touchstart', handleFireDown, { passive: false });
+        touchFireBtn.addEventListener('touchend', handleFireUp);
+        touchFireBtn.addEventListener('touchcancel', handleFireUp);
+        touchFireBtn.addEventListener('mousedown', handleFireDown);
+        touchFireBtn.addEventListener('mouseup', handleFireUp);
+        touchFireBtn.addEventListener('mouseleave', handleFireUp);
+      }
+
+      // 5-2. 하단 좌우 이동 터치 버튼 (누르고 있으면 부드럽게 이동)
+      const btnLeft = document.getElementById('btnTouchLeft');
+      const btnRight = document.getElementById('btnTouchRight');
+      if (btnLeft && btnRight) {
+        const handleLeftDown = (e) => {
+          e.preventDefault();
+          window.gameInstance.sounds.init();
+          window.gameInstance.keys['ArrowLeft'] = true;
+          window.gameInstance.touchControl.active = false;
+          btnLeft.classList.add('active');
+        };
+        const handleLeftUp = (e) => {
+          e.preventDefault();
+          window.gameInstance.keys['ArrowLeft'] = false;
+          btnLeft.classList.remove('active');
+        };
+        btnLeft.addEventListener('touchstart', handleLeftDown, { passive: false });
+        btnLeft.addEventListener('touchend', handleLeftUp);
+        btnLeft.addEventListener('touchcancel', handleLeftUp);
+        btnLeft.addEventListener('mousedown', handleLeftDown);
+        btnLeft.addEventListener('mouseup', handleLeftUp);
+        btnLeft.addEventListener('mouseleave', handleLeftUp);
+
+        const handleRightDown = (e) => {
+          e.preventDefault();
+          window.gameInstance.sounds.init();
+          window.gameInstance.keys['ArrowRight'] = true;
+          window.gameInstance.touchControl.active = false;
+          btnRight.classList.add('active');
+        };
+        const handleRightUp = (e) => {
+          e.preventDefault();
+          window.gameInstance.keys['ArrowRight'] = false;
+          btnRight.classList.remove('active');
+        };
+        btnRight.addEventListener('touchstart', handleRightDown, { passive: false });
+        btnRight.addEventListener('touchend', handleRightUp);
+        btnRight.addEventListener('touchcancel', handleRightUp);
+        btnRight.addEventListener('mousedown', handleRightDown);
+        btnRight.addEventListener('mouseup', handleRightUp);
+        btnRight.addEventListener('mouseleave', handleRightUp);
+      }
+
+      // 5-3. 상단 GNB 접기/펼치기 반응형 리사이징 연동
+      const pollGnb = setInterval(() => {
+        const toggleHandle = document.getElementById('w-gnb-toggle-handle');
+        if (toggleHandle) {
+          clearInterval(pollGnb);
+          toggleHandle.addEventListener('click', () => {
+            setTimeout(() => {
+              const gnbWrapper = document.getElementById('waurimal-gnb-wrapper');
+              const isCol = gnbWrapper && gnbWrapper.classList.contains('w-collapsed');
+              document.body.classList.toggle('gnb-collapsed', isCol);
+              if (window.gameInstance) window.gameInstance.resizeCanvas();
+            }, 60);
+          });
         }
-      };
-      touchFireBtn.addEventListener('touchstart', handleFire, { passive: false });
-      touchFireBtn.addEventListener('mousedown', handleFire);
+      }, 200);
+      setTimeout(() => clearInterval(pollGnb), 5000);
+
+      // 5-4. 와우리말 공통 오디오 상태 동기화
+      if (window.WaurimalAudio) {
+        const origToggle = window.WaurimalAudio.toggleMute;
+        window.WaurimalAudio.toggleMute = function() {
+          const res = origToggle.apply(this, arguments);
+          if (window.gameInstance && window.gameInstance.sounds) {
+            window.gameInstance.sounds.isMuted = res;
+            if (res && window.gameInstance.sounds.bgmPlaying) {
+              window.gameInstance.sounds.stopBgm();
+            }
+          }
+          if (audioBtn) audioBtn.textContent = res ? '🔇 소리 OFF' : '🔊 소리 ON';
+          return res;
+        };
+      }
 
       // 6. 단어장 모달 열기 & 목록 렌더링
       const catModal = document.getElementById('categoryModal');
