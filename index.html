@@ -81,11 +81,11 @@
 
       <!-- 제어 버튼들 -->
       <div class="control-buttons">
-        <!-- 난이도 선택: 기본값 초급(3회 오답 기회) -->
+        <!-- 난이도 선택: 기본값 초급(오답 시 하트 -1 / 철자 힌트 표시) -->
         <select id="selectDifficulty" class="hud-select" title="학습 난이도 선택">
-          <option value="easy" selected>🟢 초급 (정답 +100 / 오답 -50 & 3회 기회)</option>
-          <option value="normal">🟡 중급 (정답 +100 / 오답 -80 & 2회 기회)</option>
-          <option value="hard">🔴 고급 (정답 +100 / 오답 -100 & 1회 즉시 차감)</option>
+          <option value="easy" selected>🟢 초급 (오답 시 하트 -1 / 철자 힌트 표시)</option>
+          <option value="normal">🟡 중급 (오답 시 하트 -1 & -80점 / 물음표 타깃)</option>
+          <option value="hard">🔴 고급 (오답 시 하트 -1 & 듀얼 상실 / 빈칸 타깃)</option>
         </select>
 
         <button type="button" id="btnHof" class="hud-btn hof-btn-glow" title="은하계 명예의 전당 (Top 30)"><i class="fas fa-trophy" style="color:#ffd700;"></i> 명예의 전당</button>
@@ -257,13 +257,13 @@
       <div class="guide-content">
         <div class="guide-item" style="border-left-color: #ffd700;">
           <strong style="color: #ffd700;">💯 점수 플러스(+) & 오답 감점(-) 규칙</strong><br>
-          - 🎯 <strong>정답 철자 격추 시</strong>: <strong>+100점</strong> (연속 콤보 시 최대 2.5배 보너스 배율 적용!)<br>
-          - ❌ <strong>엉뚱한 오답 격추 시</strong>: <strong>-50점 감점</strong> (중급 -80점, 고급 -100점 감점 & 콤보 즉시 리셋)<br>
+          - 🎯 <strong>정답 철자 격추 시</strong>: <strong>+100점</strong> (연속 콤보 시 최대 2.5배 가산 & 보너스 파워업 확률 드롭!)<br>
+          - ❌ <strong>엉뚱한 오답 격추 시</strong>: <strong>하트 1개 차감 & 감점</strong> (오답 시 아이템 드롭 없음, 콤보 즉시 리셋!)<br>
           - 🏆 <strong>단어 완성 시</strong>: <strong>+500점</strong> WORD CLEAR 축하 보너스
         </div>
-        <div class="guide-item" style="border-left-color: #4ade80;">
-          <strong style="color: #4ade80;">🟢 1줄 편대 & 오답 3회 기회 시스템</strong><br>
-          알파벳 외계인들이 <strong>한 줄(1열)로 나타납니다</strong>. 엉뚱한 외계인을 격추해도 <strong>2번까지는 경고 기회</strong>가 주어지며 <strong>3회 누적 오답 시 목숨 1개가 차감</strong>됩니다.
+        <div class="guide-item" style="border-left-color: #ef4444;">
+          <strong style="color: #ef4444;">⚠️ 정확한 조준 필수 (오답 시 하트 차감)</strong><br>
+          알파벳 외계인을 쏠 때 <strong>반드시 단어 순서에 맞는 정답 철자만 격추</strong>하세요. 엉뚱한 오답 철자를 맞히면 <strong>하트 1개가 차감되고 아이템이 나오지 않습니다</strong>. (단, 쉴드 획득 시 1회 방어 가능!)
         </div>
         <div class="guide-item">
           <strong>🎯 기본 게임 룰</strong><br>

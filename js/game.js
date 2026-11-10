@@ -21,9 +21,9 @@ class SpellingGalagaGame {
     // 게임 상태: 'TITLE' | 'PLAYING' | 'WORD_CLEAR' | 'GAME_OVER' | 'VICTORY'
     this.state = 'TITLE';
 
-    // 기본 난이도 모드: 'easy' (초급: 3회 오답 기회) | 'normal' (중급: 2회 오답 기회) | 'hard' (고급: 1회 즉시 차감)
+    // 기본 난이도 모드: 'easy' (초급: 오답 시 하트 -1 / 철자 힌트) | 'normal' (중급: 오답 시 하트 -1 & -80점) | 'hard' (고급: 오답 시 하트 -1 & 듀얼 해제)
     this.difficulty = 'easy';
-    this.wrongShotCount = 0; // 누적 오답 카운터 (초급 3회, 중급 2회 시 목숨 차감)
+    this.wrongShotCount = 0;
 
     // 기본 게임 규칙 & 상태 변수
     this.maxLives = 5;
@@ -589,11 +589,6 @@ class SpellingGalagaGame {
       this.capturedFighterBoss = null;
     }
 
-    // 아이템 드롭 확률 대폭 상향 (45% 확률로 쏟아짐)
-    if (Math.random() < 0.45 || this.combo >= 3) {
-      this.spawnRandomPowerup(enemy.x, enemy.y);
-    }
-
     this.enemies.splice(index, 1);
 
     if (isCorrect) {
@@ -618,6 +613,11 @@ class SpellingGalagaGame {
         this.addFloatingText(`COMBO x${this.combo}!`, enemy.x, enemy.y - 35, '#facc15');
       }
 
+      // 🎁 정답 철자를 격추했을 때만 유용한 보너스 아이템 확률 드롭! (기본 30% 확률, 3콤보 이상 시 50%)
+      if (Math.random() < 0.30 || this.combo >= 3) {
+        this.spawnRandomPowerup(enemy.x, enemy.y);
+      }
+
       this.updateHUD();
 
       if (this.targetLetterIndex >= this.currentWord.length) {
@@ -626,44 +626,38 @@ class SpellingGalagaGame {
         this.ensureTargetLetterAvailable();
       }
     } else {
-      // ❌ 오답 글자 맞힘 (엉뚱한 알파벳 피격 시 즉시 감점 처리)
+      // ❌ 오답 글자 맞힘 (엉뚱한 알파벳 격추 시 하트 즉시 차감 & 페널티 처리, 아이템 절대 미지급)
       this.sounds.playWrong();
-      this.combo = 0;
+      this.combo = 0; // 콤보 즉시 초기화
 
       // 난이도별 감점 처리 (0점 미만으로는 내려가지 않음)
       const penaltyScore = (this.difficulty === 'easy') ? 50 : (this.difficulty === 'normal' ? 80 : 100);
       this.score = Math.max(0, this.score - penaltyScore);
       this.addFloatingText(`-${penaltyScore}`, enemy.x, enemy.y - 15, '#ef4444', 18);
 
-      if (this.difficulty === 'easy') {
-        // 🟢 초급 모드: 3회 누적 오답 시 목숨 1개 차감 (2회까지는 친절한 경고 기회)
-        this.wrongShotCount++;
-        if (this.wrongShotCount >= 3) {
-          this.wrongShotCount = 0;
-          this.lives--;
-          this.shakeTimer = 14;
-          this.addFloatingText(`3회 오답 누적! -1 LIFE`, this.virtualWidth / 2, this.virtualHeight / 2, '#f87171', 20);
-        } else {
-          this.shakeTimer = 8;
-          this.addFloatingText(`오답 주의! (${this.wrongShotCount}/3 기회)`, enemy.x, enemy.y - 35, '#fbbf24', 16);
-        }
-      } else if (this.difficulty === 'normal') {
-        // 🟡 중급 모드: 2회 누적 오답 시 목숨 1개 차감
-        this.wrongShotCount++;
-        if (this.wrongShotCount >= 2) {
-          this.wrongShotCount = 0;
-          this.lives--;
-          this.shakeTimer = 14;
-          this.addFloatingText(`2회 오답 누적! -1 LIFE`, this.virtualWidth / 2, this.virtualHeight / 2, '#f87171', 20);
-        } else {
-          this.shakeTimer = 10;
-          this.addFloatingText(`오답 경고! (1/2 기회)`, enemy.x, enemy.y - 35, '#fbbf24', 16);
-        }
+      // 🛡️ 쉴드가 있다면 오답 페널티를 1회 막아주고 쉴드 소멸
+      if (this.player.hasShield) {
+        this.player.hasShield = false;
+        this.sounds.playShieldDeflect();
+        this.shakeTimer = 10;
+        this.addFloatingText('🛡️ SHIELD BLOCKED WRONG PENALTY!', enemy.x, enemy.y - 35, '#38bdf8', 18);
       } else {
-        // 🔴 고급 모드: 즉시 목숨 1개 차감
+        // 💔 하트(목숨) 즉시 1개 차감!
         this.lives--;
-        this.shakeTimer = 16;
-        this.addFloatingText(`MISS! -1 LIFE`, enemy.x, enemy.y - 35, '#ef4444', 18);
+        this.sounds.playLifeLost();
+        this.shakeTimer = 14;
+
+        if (this.difficulty === 'hard') {
+          // 고급 모드: 오답 시 듀얼 파이터 상태까지 즉시 파괴
+          if (this.player.isDual) {
+            this.player.isDual = false;
+            this.addFloatingText('❌ 오답! -1 LIFE & DUAL LOST!', enemy.x, enemy.y - 35, '#ef4444', 20);
+          } else {
+            this.addFloatingText('❌ 오답 철자 피격! -1 LIFE ❤️', enemy.x, enemy.y - 35, '#ef4444', 20);
+          }
+        } else {
+          this.addFloatingText('❌ 오답 철자 피격! -1 LIFE ❤️', enemy.x, enemy.y - 35, '#ef4444', 20);
+        }
       }
 
       this.updateHUD();
@@ -675,10 +669,10 @@ class SpellingGalagaGame {
     }
   }
 
-  // 아이템 생성 (하트 & 쉴드 가중치 상향)
+  // 아이템 생성 (정답 철자 격추 시에만 드롭)
   spawnRandomPowerup(x, y) {
     const types = ['heart', 'dual', 'shield', 'bomb', 'slow'];
-    const weights = [0.35, 0.25, 0.20, 0.12, 0.08];
+    const weights = [0.20, 0.25, 0.25, 0.18, 0.12];
     let rand = Math.random();
     let selected = types[0];
 
