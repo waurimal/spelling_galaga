@@ -1,6 +1,6 @@
 /**
- * 스펠링 갤러그 (Spelling Galaga) - 게임 엔진 및 메인 루프
- * 갤러그 편대 비행, 듀얼 파이터 구출, 트랙터 빔, 파워업 아이템, 5 목숨 시스템, 초등 맞춤 3단계 난이도
+ * 스펠링 갤럭시 (Spelling Galaxy) - 게임 엔진 및 메인 루프
+ * 외계인 편대 비행, 듀얼 파이터 구출, 트랙터 빔, 파워업 아이템, 5 목숨 시스템, 초등 맞춤 3단계 난이도
  */
 
 // 와우리말 공통 학생 SSO 프로필 헬퍼
@@ -1368,12 +1368,12 @@ class SpellingGalagaGame {
     this.ctx.shadowColor = '#ff6b00';
     this.ctx.shadowBlur = 20;
     this.ctx.font = "bold 34px 'Press Start 2P', monospace, sans-serif";
-    this.ctx.fillText("SPELLING GALAGA", this.virtualWidth / 2, 160);
+    this.ctx.fillText("SPELLING GALAXY", this.virtualWidth / 2, 160);
 
     this.ctx.fillStyle = '#38bdf8';
     this.ctx.shadowBlur = 10;
     this.ctx.font = "bold 18px 'DungGeunMo', sans-serif";
-    this.ctx.fillText("우주 단어 수호대 - 스펠링 갤러그", this.virtualWidth / 2, 205);
+    this.ctx.fillText("우주 단어 수호대 - 스펠링 갤럭시", this.virtualWidth / 2, 205);
 
     this.ctx.fillStyle = '#ffffff';
     this.ctx.shadowBlur = 0;
