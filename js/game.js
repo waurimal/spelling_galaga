@@ -202,15 +202,27 @@ class SpellingGalagaGame {
   // 이벤트 바인딩
   bindEvents() {
     window.addEventListener('keydown', (e) => {
+      const homeScreen = document.getElementById('screen-home');
+      const isHomeActive = homeScreen && !homeScreen.classList.contains('hidden');
+
+      if (['INPUT', 'SELECT', 'TEXTAREA'].includes(document.activeElement?.tagName)) {
+        return; // 입력 요소 포커스 시 게임 키 입력 무시
+      }
+
       this.keys[e.code] = true;
 
       if (['Space', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(e.code)) {
-        e.preventDefault();
+        if (!isHomeActive) {
+          e.preventDefault();
+        }
       }
 
       this.sounds.init();
 
       if (e.code === 'Space' || e.code === 'Enter') {
+        if (isHomeActive) {
+          return; // 홈 화면에서는 전역 스페이스/엔터로 게임 임의 시작 방지
+        }
         if (this.state === 'TITLE' || this.state === 'GAME_OVER' || this.state === 'VICTORY') {
           this.startGame();
         } else if (this.state === 'PLAYING') {
@@ -233,6 +245,10 @@ class SpellingGalagaGame {
     };
 
     const handlePointerDown = (e) => {
+      const homeScreen = document.getElementById('screen-home');
+      if (homeScreen && !homeScreen.classList.contains('hidden')) {
+        return;
+      }
       this.sounds.init();
       handlePointerMove(e);
       if (this.state === 'TITLE' || this.state === 'GAME_OVER' || this.state === 'VICTORY') {
@@ -890,6 +906,11 @@ class SpellingGalagaGame {
         } catch (fbErr) {
           console.warn("Firestore save score error:", fbErr);
         }
+      }
+
+      // 명예의 전당 최신 기록 즉시 동기화
+      if (typeof window !== 'undefined' && typeof window.loadHof === 'function') {
+        window.loadHof();
       }
 
       return record;
